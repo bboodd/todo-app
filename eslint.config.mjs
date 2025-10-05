@@ -19,6 +19,12 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
+    rules: {
+      // Unexpected any. Specify a different type 문구 제거
+      "@typescript-eslint/no-explicit-any": "off",
+      // React, { ReactElement } from "react" 설정 안함
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+    },
   },
 ];
 
