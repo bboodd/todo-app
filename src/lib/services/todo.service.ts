@@ -4,20 +4,31 @@ import { AppDataSource, initializeDatabase } from "../db/data-source";
 
 export class TodoService {
   private todoRepository: Repository<Todo>;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    this.todoRepository = AppDataSource.getRepository(Todo);
+    this.initialize();
   }
 
-  async ensureInitialized() {
-    await initializeDatabase();
+  async initialize() {
+    if (!this.initPromise) {
+      this.initPromise = initializeDatabase().then(() => {
+        this.todoRepository = AppDataSource.getRepository(Todo);
+      });
+    }
+    return this.initPromise;
+  }
+
+  private async getRepository(): Promise<Repository<Todo>> {
+    await this.initialize();
+    return this.todoRepository;
   }
 
   async findAll(filters?: {
     completed?: boolean;
     priority?: string;
   }): Promise<Todo[]> {
-    await this.ensureInitialized();
+    const repo = await this.getRepository();
 
     const where: FindOptionsWhere<Todo> = {};
     if (filters?.completed !== undefined) {
@@ -27,52 +38,46 @@ export class TodoService {
       where.priority = filters.priority as "low" | "medium" | "high";
     }
 
-    return this.todoRepository.find({
+    return repo.find({
       where,
       order: { createdAt: "DESC" },
     });
   }
 
   async findById(id: string): Promise<Todo | null> {
-    await this.ensureInitialized();
-    return this.todoRepository.findOneBy({ id });
+    const repo = await this.getRepository();
+    return repo.findOne({ where: { id } });
   }
 
   async create(data: Partial<Todo>): Promise<Todo> {
-    await this.ensureInitialized();
-    const todo = this.todoRepository.create(data);
-    return this.todoRepository.save(todo);
+    const repo = await this.getRepository();
+    const todo = repo.create(data);
+    return repo.save(todo);
   }
 
   async update(id: string, data: Partial<Todo>): Promise<Todo | null> {
-    await this.ensureInitialized();
+    const repo = await this.getRepository();
 
     const todo = await this.findById(id);
-    if (!todo) {
-      return null;
-    }
+    if (!todo) return null;
 
     Object.assign(todo, data);
-    return this.todoRepository.save(todo);
+    return repo.save(todo);
   }
 
   async delete(id: string): Promise<boolean> {
-    await this.ensureInitialized();
-
-    const result = await this.todoRepository.delete(id);
+    const repo = await this.getRepository();
+    const result = await repo.delete(id);
     return (result.affected ?? 0) > 0;
   }
 
   async toggleComplete(id: string): Promise<Todo | null> {
-    await this.ensureInitialized();
-
     const todo = await this.findById(id);
-    if (!todo) {
-      return null;
-    }
+    if (!todo) return null;
 
+    const repo = await this.getRepository();
     todo.completed = !todo.completed;
-    return this.todoRepository.save(todo);
+    return repo.save(todo);
   }
 }
 
