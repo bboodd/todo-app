@@ -2,19 +2,66 @@
 
 import { Todo } from "@/lib/db/entities/Todo";
 
+/**
+ * TodoFilter 컴포넌트의 Props
+ */
 interface TodoFilterProps {
+  /**
+   * 현재 활성화된 필터 (all/active/completed)
+   */
   currentFilter: "all" | "active" | "completed";
+
+  /**
+   * 현재 선택된 우선순위 필터 (모두 표시는 빈 문자열)
+   */
   priorityFilter: string;
+
+  /**
+   * 상태 필터 변경 시 콜백
+   */
   onFilterChange: (filter: "all" | "active" | "completed") => void;
+
+  /**
+   * 우선순위 필터 변경 시 콜백
+   */
   onPriorityChange: (priority: string) => void;
 }
 
+/**
+ * TodoFilter 컴포넌트
+ *
+ * 두 가지 필터 유형으로 todo 필터링 UI를 제공합니다:
+ * 1. 상태 필터 - 전체 / 활성 / 완료 (버튼 그룹)
+ * 2. 우선순위 필터 - 전체 / 낮음 / 보통 / 높음 (드롭다운)
+ *
+ * 기능:
+ * - 활성 필터의 시각적 표시 (파란색 배경)
+ * - 반응형 레이아웃 (모바일에서는 세로, 데스크톱에서는 가로)
+ * - 우선순위 레벨을 위한 이모지 아이콘
+ *
+ * @component
+ * @param {TodoFilterProps} props - 컴포넌트 props
+ * @returns {JSX.Element} 렌더링된 필터 컨트롤
+ *
+ * @example
+ * ```tsx
+ * <TodoFilter
+ *   currentFilter={filter}
+ *   priorityFilter={priorityFilter}
+ *   onFilterChange={setFilter}
+ *   onPriorityChange={setPriorityFilter}
+ * />
+ * ```
+ */
 export default function TodoFilter({
   currentFilter,
   priorityFilter,
   onFilterChange,
   onPriorityChange,
 }: TodoFilterProps) {
+  /**
+   * 사용 가능한 상태 필터 옵션
+   */
   const filters: Array<{
     value: "all" | "active" | "completed";
     label: string;

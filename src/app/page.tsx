@@ -6,7 +6,7 @@ import TodoForm from "@/components/todo/TodoForm";
 import TodoList from "@/components/todo/TodoList";
 import TodoFilter from "@/components/todo/TodoFilter";
 
-export default function Hone() {
+export default function Home() {
   const {
     todos,
     loading,
@@ -17,7 +17,7 @@ export default function Hone() {
     toggleComplete,
     fetchTodos,
   } = useTodos();
-  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");
+  const [filter, setFilter] = useState<"all" | "completed" | "active">("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
 
   const filteredTodos = todos.filter((todo) => {

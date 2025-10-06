@@ -6,6 +6,17 @@ import { Todo } from "./entities/Todo";
 
 dotenv.config();
 
+/**
+ * PostgreSQL 데이터베이스를 위한 TypeORM DataSource 설정
+ *
+ * 데이터베이스 연결 설정을 관리하는 싱글톤 인스턴스:
+ * - 연결 매개변수 (호스트, 포트, 데이터베이스, 인증 정보)
+ * - 엔티티 매핑 (User, Todo)
+ * - 자동 동기화 (개발 모드에서만)
+ * - 쿼리 로깅 (개발 모드에서만)
+ *
+ * @see {@link https://typeorm.io/data-source TypeORM DataSource 문서}
+ */
 export const AppDataSource = new DataSource({
   type: "postgres",
   url: process.env.DB_URL,
@@ -20,8 +31,29 @@ export const AppDataSource = new DataSource({
   subscribers: [],
 });
 
-// 데이터베이스 초기화
+/**
+ * 데이터베이스 초기화 여부를 추적하는 플래그
+ * 중복 초기화 시도를 방지합니다
+ */
 let initialized = false;
+
+/**
+ * 싱글톤 패턴으로 데이터베이스 연결을 초기화합니다
+ *
+ * 이 함수는 다음을 보장합니다:
+ * - 데이터베이스 연결이 단 한 번만 설정됨
+ * - 후속 호출 시 기존 연결을 반환함
+ * - 초기화 오류가 적절히 로깅되고 전파됨
+ *
+ * @returns {Promise<DataSource>} 초기화된 TypeORM DataSource
+ * @throws {Error} 데이터베이스 연결 실패 시
+ *
+ * @example
+ * ```typescript
+ * const dataSource = await initializeDatabase();
+ * const todoRepository = dataSource.getRepository(Todo);
+ * ```
+ */
 export const initializeDatabase = async () => {
   if (!initialized) {
     try {
